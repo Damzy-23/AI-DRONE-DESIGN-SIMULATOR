@@ -16,17 +16,17 @@ except ImportError:
 
 
 def simulate_command(args):
-    print(f"\\n[INFO] Starting Drone Design Simulation Pipeline for {args.count} configurations...")
+    print(f"\n[INFO] Starting Drone Design Simulation Pipeline for {args.count} configurations...")
     results = design_pipeline.run_pipeline(args.count)
     
-    print(f"\\n--- PIPELINE FUNNEL ---")
+    print(f"\n--- PIPELINE FUNNEL ---")
     print(f"Initial Designs : {results['initial_count']}")
     print(f"Stage 1 (Low-Fi) : {results['stage1_count']}")
     print(f"Stage 2 (Mid-Fi) : {results['stage2_count']}")
     print(f"Stage 3 (High-Fi): {results['final_count']}")
-    print(f"-----------------------\\n")
+    print(f"-----------------------\n")
     
-    print("[SUCCESS] Top 5 Recommended Drone Designs for Physical Prototyping:\\n")
+    print("[SUCCESS] Top 5 Recommended Drone Designs for Physical Prototyping:\n")
     
     table = PrettyTable()
     table.field_names = ["Design ID", "Score", "Motors", "Propeller (in)", "Battery (mAh)", "Payload (kg)"]
@@ -45,7 +45,7 @@ def simulate_command(args):
 
 
 def predict_swarm_command(args):
-    print(f"\\n[INFO] Generating Swarm Operational Data for {args.drones} units...")
+    print(f"\n[INFO] Generating Swarm Operational Data for {args.drones} units...")
     
     # Train model first
     model = swarm_prediction.train_failure_model()
@@ -57,10 +57,10 @@ def predict_swarm_command(args):
     # Predict high risk drones
     high_risk_drones = swarm_prediction.predict_failures(model, swarm_data, threshold=0.7)
     
-    print(f"\\n--- SWARM RELIABILITY REPORT ---")
+    print(f"\n--- SWARM RELIABILITY REPORT ---")
     print(f"Total Drones Evaluated : {len(swarm_data)}")
     print(f"High-Risk Drones Flags : {len(high_risk_drones)}")
-    print(f"Action Required        : REMOVE THE FOLLOWING DRONES BEFORE SHOW\\n")
+    print(f"Action Required        : REMOVE THE FOLLOWING DRONES BEFORE SHOW\n")
     
     if len(high_risk_drones) == 0:
         print("[SUCCESS] All drones are optimal for flight. No high-risk failures predicted.")
@@ -77,7 +77,7 @@ def predict_swarm_command(args):
 
 
 def cost_analysis_command(args):
-    print("\\n[COST ANALYSIS] Simulation-First Development Strategy")
+    print("\n[COST ANALYSIS] Simulation-First Development Strategy")
     print("=" * 60)
     print(f"Traditional Prototyping Cost:   £50,000 per year")
     print(f"Expected physical builds:       15-20 units")

@@ -3,10 +3,10 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 def generate_swarm_data(num_drones=300, fail_ratio=0.08):
-    \"\"\"
+    """
     Generates synthetic but realistic pre-flight diagnostic data for a drone swarm.
     Features: battery_voltage, motor_rpm_variance, max_temp, imu_calibration_error, gps_signal, vibration_level
-    \"\"\"
+    """
     np.random.seed(42)  # For reproducible hackathon results
     
     # Generate Normal Drones
@@ -43,9 +43,9 @@ def generate_swarm_data(num_drones=300, fail_ratio=0.08):
     return df_swarm
 
 def train_failure_model():
-    \"\"\"
+    """
     Generates historical data and trains a RandomForest model to predict failures.
-    \"\"\"
+    """
     historical_data = generate_swarm_data(num_drones=2000, fail_ratio=0.10)
     
     X = historical_data.drop(columns=['drone_id', 'predict_fail'])
@@ -58,10 +58,10 @@ def train_failure_model():
     return model
 
 def predict_failures(model, swarm_data, threshold=0.7):
-    \"\"\"
+    """
     Predicts probability of failure for a pre-flight swarm.
     Returns a dataframe of drones exceeding the failure threshold.
-    \"\"\"
+    """
     X_pred = swarm_data.drop(columns=['drone_id', 'predict_fail'], errors='ignore')
     
     probs = model.predict_proba(X_pred)[:, 1]

@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 
 def generate_design_space(num_designs=1000):
-    \"\"\"
+    """
     Generates random combinations of drone designs.
-    \"\"\"
+    """
     np.random.seed(42)  # For reproducibility
     
     data = {
@@ -18,10 +18,10 @@ def generate_design_space(num_designs=1000):
     return pd.DataFrame(data)
 
 def stage1_low_fidelity(df):
-    \"\"\"
+    """
     Fast filtering using simplified physics equations (approximations).
     Filters down to Top 50.
-    \"\"\"
+    """
     # Approximations for scoring
     # Thrust approximation: proportional to motor_count * propeller_diameter^2
     estimated_thrust = df['motor_count'] * (df['propeller_diameter_inch'] ** 2) * 0.05
@@ -39,10 +39,10 @@ def stage1_low_fidelity(df):
     return df_filtered.sort_values(by='stage1_score', ascending=False).head(50)
 
 def stage2_medium_fidelity(df):
-    \"\"\"
+    """
     Mocking an intermediate simulation (e.g. PyBullet rigid-body).
     Filters Top 50 down to Top 10.
-    \"\"\"
+    """
     # Introduce some non-linear stability scoring based on prop size vs frame mass
     stability = 1.0 - abs((df['propeller_diameter_inch'] / df['frame_mass_kg']) - 4.0) / 4.0
     stability = stability.clip(lower=0.1)
@@ -53,10 +53,10 @@ def stage2_medium_fidelity(df):
     return df_filtered.sort_values(by='stage2_score', ascending=False).head(10)
 
 def stage3_high_fidelity(df):
-    \"\"\"
+    """
     Mocking high-fidelity aerodynamic & CFD simulation (e.g. Gazebo).
     Returns final Top 5 robust designs.
-    \"\"\"
+    """
     df_filtered = df.copy()
     
     # Mocking environmental disturbances (wind resistance score)
@@ -67,9 +67,9 @@ def stage3_high_fidelity(df):
     return df_filtered.sort_values(by='final_score', ascending=False).head(5)
 
 def run_pipeline(num_designs=1000):
-    \"\"\"
+    """
     Executes the full 3-stage simulation funnel.
-    \"\"\"
+    """
     initial_designs = generate_design_space(num_designs)
     
     stage1_results = stage1_low_fidelity(initial_designs)
