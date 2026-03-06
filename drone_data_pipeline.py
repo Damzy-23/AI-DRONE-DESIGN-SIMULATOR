@@ -22,7 +22,7 @@ Derived / Simulation Output Metrics:
   - stability_score (0-100)
   - max_speed_kmh
   - crash_probability (0-1)
-  - drone_cost_usd
+  - drone_cost_gbp
 """
 
 import pandas as pd
@@ -187,7 +187,7 @@ def compute_crash_probability(stability_score, twr):
 
 
 def compute_cost(battery, motors_n, motor_spec, propeller, frame, receiver):
-    """Total build cost in USD with assembly overhead."""
+    """Total build cost in GBP with assembly overhead."""
     parts_cost = (
         battery["cost"]
         + motors_n * motor_spec["cost"]
@@ -262,7 +262,7 @@ def generate_dataset(n=NUM_SAMPLES):
             "max_speed_kmh": max_speed,
             "stability_score": stability,
             "crash_probability": crash_prob,
-            "drone_cost_usd": cost,
+            "drone_cost_gbp": cost,
         })
 
     df = pd.DataFrame(rows)
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     print(f"  Unique battery types     : {df['battery_type'].nunique()}")
     print(f"  Motor configs            : {sorted(df['num_motors'].unique())}")
     print(f"  Flight time range        : {df['flight_time_min'].min():.1f} – {df['flight_time_min'].max():.1f} min")
-    print(f"  Cost range               : ${df['drone_cost_usd'].min():.0f} – ${df['drone_cost_usd'].max():.0f}")
+    print(f"  Cost range               : £{df['drone_cost_gbp'].min():.0f} – £{df['drone_cost_gbp'].max():.0f}")
     print(f"  Stability score range    : {df['stability_score'].min():.1f} – {df['stability_score'].max():.1f}")
     print(f"  Crash probability range  : {df['crash_probability'].min():.2%} – {df['crash_probability'].max():.2%}")
     print(f"{'─'*50}")

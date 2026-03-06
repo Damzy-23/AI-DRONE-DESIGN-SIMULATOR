@@ -1,4 +1,4 @@
-config_id,battery_type,num_motors,propeller_size,frame_size,radio_receiver,battery_capacity_mah,battery_weight_g,motor_thrust_per_g,total_thrust_g,total_weight_g,thrust_to_weight_ratio,payload_capacity_g,flight_time_min,power_consumption_w,max_speed_kmh,stability_score,crash_probability,drone_cost_usd
+config_id,battery_type,num_motors,propeller_size,frame_size,radio_receiver,battery_capacity_mah,battery_weight_g,motor_thrust_per_g,total_thrust_g,total_weight_g,thrust_to_weight_ratio,payload_capacity_g,flight_time_min,power_consumption_w,max_speed_kmh,stability_score,crash_probability,drone_cost_gbp
 CFG-0001,LiPo 6S 4000mAh,3,"9""",450mm Standard,DJI FPV Receiver,4000,680,800,2400,1319,1.82,1081,26.73,187.62,84.52,54.38,0.6373,376.32
 CFG-0002,LiPo 4S 5000mAh,4,"5""",330mm Medium,DJI FPV Receiver,5000,520,900,3600,1062,3.39,2538,23.25,185.37,93.09,68.11,0.4138,342.72
 CFG-0003,LiPo 6S 4000mAh,4,"7""",220mm Mini,DJI FPV Receiver,4000,680,900,3600,1108,3.249,2492,31.12,171.39,125.01,66.9,0.4378,343.84
