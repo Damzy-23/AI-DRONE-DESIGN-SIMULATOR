@@ -108,6 +108,48 @@ def predict():
         "drone_cost_gbp": estimated_cost
     })
 
+from src import design_pipeline
+from src import swarm_prediction
+
+@app.route('/simulate_drone', methods=['POST'])
+def simulate_drone():
+    data = request.json
+    config = data.get('config', 'trainer')
+    
+    # Run a mock single iteration of our simulation testing
+    # We will return speed, crash likelihood, and altitude based on config
+    stats = {}
+    if config == 'trainer':
+        stats = {"crash_likelihood": "Low (12%)", "speed": 35, "altitude": 120, "drain_rate": 0.3}
+    elif config == 'racer':
+        stats = {"crash_likelihood": "High (45%)", "speed": 120, "altitude": 150, "drain_rate": 0.8}
+    elif config == 'cinelifter':
+        stats = {"crash_likelihood": "Medium (25%)", "speed": 40, "altitude": 200, "drain_rate": 0.5}
+
+    return jsonify(stats)
+
+@app.route('/predict_swarm', methods=['GET'])
+def predict_swarm_api():
+    # Load model and predict
+    model = swarm_prediction.train_failure_model()
+    # Let's do a fast 50 drone swarm for UI display
+    swarm_data = swarm_prediction.generate_swarm_data(num_drones=50, fail_ratio=0.10)
+    high_risk_drones = swarm_prediction.predict_failures(model, swarm_data, threshold=0.7)
+    
+    results = []
+    for _, row in high_risk_drones.iterrows():
+        results.append({
+            "drone_id": int(row['drone_id']),
+            "failure_probability": f"{row['failure_probability']*100:.1f}%",
+            "reason": row['diagnostic_reason']
+        })
+        
+    return jsonify({
+        "total_evaluated": len(swarm_data),
+        "high_risk_count": len(high_risk_drones),
+        "drones": results
+    })
+
 if __name__ == '__main__':
     print("[INFO] Starting Flask Server on http://localhost:5000")
     app.run(debug=False, port=5000)

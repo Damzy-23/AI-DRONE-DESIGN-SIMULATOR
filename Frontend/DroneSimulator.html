@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Drone Simulator - HVN Labs</title>
+  <link rel="stylesheet" href="main.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1>HVN Labs Machine Learning Model</h1>
+    </header>
+
+    <div class="app-main">
+      <nav class="sidebar">
+        <ul>
+          <li><a href="MLModel.html">ML Model</a></li>
+          <li><a href="MLDataUpload.html">ML Data Upload</a></li>
+          <li><a class="active" href="DroneSimulator.html">Drone simulator</a></li>
+        </ul>
+      </nav>
+
+      <main class="content">
+        <section class="card">
+          <h2>Drone simulator</h2>
+          <p>
+            Select a drone configuration (generated from the ML model page)
+            and run a simple simulation to see example behaviour: likelihood
+            of crashes, speed, maximum altitude, and battery usage over time.
+            This is a front-end only mock simulator that you can later connect
+            to a real physics engine or backend.
+          </p>
+
+          <form class="ml-form" id="sim-form">
+            <div class="form-row">
+              <label for="droneSelect">Choose a drone:</label>
+              <select id="droneSelect" required>
+                <option value="">-- Select a drone configuration --</option>
+                <option value="trainer">
+                  Trainer quad (4 motors, medium frame, 2200 mAh)
+                </option>
+                <option value="racer">
+                  Racing quad (4 motors, small frame, 1500 mAh)
+                </option>
+                <option value="cinelifter">
+                  Cine-lifter (8 motors, large frame, 3000 mAh)
+                </option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="primary-btn">Start simulation</button>
+            </div>
+
+            <p id="simMessage" class="form-error" aria-live="polite"></p>
+
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;" />
+
+            <h3>Swarm Reliability Module</h3>
+            <p>Predict pre-flight failures for a 50-drone active swarm.</p>
+            <div class="form-actions" style="margin-top: 10px;">
+              <button type="button" id="swarmBtn" class="primary-btn" style="background-color: #4f46e5;">Predict Swarm
+                Failures</button>
+            </div>
+            <div id="swarmResults"
+              style="margin-top: 15px; display: none; background: #fee2e2; padding: 15px; border-radius: 6px; font-size: 0.9em; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+              <strong style="color: #b91c1c; display: block; margin-bottom: 8px;">🚨 High Risk Swarm Drones
+                Detected</strong>
+              <ul id="swarmList" style="list-style-type: none; padding: 0; margin: 0; color: #7f1d1d;">
+              </ul>
+            </div>
+          </form>
+        </section>
+
+        <section class="card output-section">
+          <h2>Simulation</h2>
+          <div class="sim-layout">
+            <div class="sim-viewport">
+              <div class="sky">
+                <div id="droneIcon" class="drone-icon"></div>
+              </div>
+              <div class="ground"></div>
+            </div>
+
+            <div class="sim-stats">
+              <div class="stat-row">
+                <span class="stat-label">Crash likelihood:</span>
+                <span id="crashStat" class="stat-value">–</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Average speed:</span>
+                <span id="speedStat" class="stat-value">–</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Max altitude:</span>
+                <span id="altitudeStat" class="stat-value">–</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Battery remaining:</span>
+                <span id="batteryStat" class="stat-value">–</span>
+              </div>
+              <div class="battery-bar">
+                <div id="batteryFill" class="battery-fill"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById("sim-form");
+      const select = document.getElementById("droneSelect");
+      const message = document.getElementById("simMessage");
+      const droneIcon = document.getElementById("droneIcon");
+
+      const crashStat = document.getElementById("crashStat");
+      const speedStat = document.getElementById("speedStat");
+      const altitudeStat = document.getElementById("altitudeStat");
+      const batteryStat = document.getElementById("batteryStat");
+      const batteryFill = document.getElementById("batteryFill");
+
+      let simInterval = null;
+      let battery = 100;
+      let t = 0;
+
+      let batteryDrainRate = 0.5;
+
+      function stopSimulation() {
+        if (simInterval) {
+          clearInterval(simInterval);
+          simInterval = null;
+        }
+      }
+
+      async function startSimulation(config) {
+        stopSimulation();
+        battery = 100;
+        t = 0;
+        batteryFill.style.width = battery + "%";
+        batteryStat.textContent = battery + "%";
+
+        // Fetch real simulated stats from backend
+        try {
+          const response = await fetch('/simulate_drone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ config: config })
+          });
+          const data = await response.json();
+
+          crashStat.textContent = data.crash_likelihood;
+          speedStat.textContent = data.speed + " km/h";
+          altitudeStat.textContent = data.altitude + " m";
+          batteryDrainRate = data.drain_rate / 2; // Making it slower for UI testing
+        } catch (err) {
+          console.error("API Error", err);
+        }
+
+        // Slowed down the interval timing from 100 to 200 ms to make simulation last longer
+        simInterval = setInterval(function () {
+          t += 0.1;
+
+          // Simple up-and-down motion for the drone icon
+          const amplitude = 35;
+          const base = 25;
+          const y = base + Math.sin(t) * amplitude;
+          droneIcon.style.transform = "translate(-50%, -" + y + "px)";
+
+          // Decrease battery over time
+          if (battery > 0) {
+            battery = Math.max(0, battery - batteryDrainRate);
+            batteryFill.style.width = battery + "%";
+            batteryStat.textContent = Math.round(battery) + "%";
+          } else {
+            stopSimulation();
+            message.style.color = "#b91c1c";
+            message.textContent = "Simulation ended: battery depleted.";
+            droneIcon.style.transform = "translate(-50%, 0px)"; // Crash to ground
+          }
+        }, 200);
+      }
+
+      // --- Swarm Predictor Logic ---
+      const swarmBtn = document.getElementById("swarmBtn");
+      const swarmResults = document.getElementById("swarmResults");
+      const swarmList = document.getElementById("swarmList");
+
+      if (swarmBtn) {
+        swarmBtn.addEventListener("click", async function () {
+          swarmBtn.textContent = "Running ML model...";
+          swarmBtn.disabled = true;
+          swarmResults.style.display = "none";
+          swarmList.innerHTML = "";
+
+          try {
+            const res = await fetch('/predict_swarm');
+            const data = await res.json();
+
+            if (data.high_risk_count === 0) {
+              swarmList.innerHTML = `<li style="color: #166534; font-weight: bold;">✅ Swarm safe for launch! No risky drones.</li>`;
+            } else {
+              data.drones.forEach(d => {
+                swarmList.innerHTML += `<li style="margin-bottom: 4px;">• <strong>Unit #${String(d.drone_id).padStart(3, '0')}</strong> (${d.failure_probability} Fail Risk) - <em>${d.reason}</em></li>`;
+              });
+            }
+            swarmResults.style.display = "block";
+          } catch (err) {
+            alert("Failed to reach backend." + err.message);
+          }
+          swarmBtn.textContent = "Predict Swarm Failures";
+          swarmBtn.disabled = false;
+        });
+      }
+
+      if (form) {
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+          message.textContent = "";
+          message.style.color = "#b91c1c";
+
+          if (!select.value) {
+            message.textContent = "Please choose a drone configuration.";
+            return;
+          }
+
+          message.style.color = "#166534";
+          message.textContent =
+            "Running example simulation for the selected configuration (placeholder only).";
+
+          startSimulation(select.value);
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>
