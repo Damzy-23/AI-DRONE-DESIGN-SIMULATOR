@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>HVN Labs Machine Learning Model</title>
+  <link rel="stylesheet" href="main.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <h1>HVN Labs Machine Learning Model</h1>
+    </header>
+
+    <div class="app-main">
+      <nav class="sidebar">
+        <ul>
+          <li><a href="MLModel.html" class="active">ML Model</a></li>
+          <li><a href="MLDataUpload.html">ML Data Upload</a></li>
+          <li><a href="DroneSimulator.html">Drone simulator</a></li>
+        </ul>
+      </nav>
+
+      <main class="content">
+        <section class="card">
+          <h2>Physical variables:</h2>
+
+          <form id="ml-form" class="ml-form">
+            <div class="form-row">
+              <label for="batteryType">Battery type:</label>
+              <select id="batteryType" required>
+                <option value="">-- Select an option --</option>
+                <option value="LiPo_1500">LiPo 1500 mAh</option>
+                <option value="LiPo_2200">LiPo 2200 mAh</option>
+                <option value="LiPo_3000">LiPo 3000 mAh</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="numMotors">Number of motors:</label>
+              <select id="numMotors" required>
+                <option value="">-- Select an option --</option>
+                <option value="2">2</option>
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="propellerSize">Propeller size:</label>
+              <select id="propellerSize" required>
+                <option value="">-- Select an option --</option>
+                <option value="5in">5 inch</option>
+                <option value="7in">7 inch</option>
+                <option value="10in">10 inch</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="frameSize">Frame size:</label>
+              <select id="frameSize" required>
+                <option value="">-- Select an option --</option>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="radioReceiver">Radio receiver:</label>
+              <select id="radioReceiver" required>
+                <option value="">-- Select an option --</option>
+                <option value="2_4ghz">2.4 GHz</option>
+                <option value="5_8ghz">5.8 GHz</option>
+                <option value="long_range">Long range</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="primary-btn">Submit</button>
+            </div>
+
+            <p id="formError" class="form-error" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="card output-section">
+          <h2>ML Machine Output:</h2>
+          <div class="output-grid">
+            <div>
+              <h3>Flight time:</h3>
+              <p id="flightTimeOutput" class="output-value">
+                Select your drone configuration and click Submit to see an
+                example flight time description here.
+              </p>
+            </div>
+            <div>
+              <h3>Drone cost:</h3>
+              <p id="droneCostOutput" class="output-value">
+                Select your drone configuration and click Submit to see an
+                example cost estimate description here.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById("ml-form");
+      const errorEl = document.getElementById("formError");
+      const flightEl = document.getElementById("flightTimeOutput");
+      const costEl = document.getElementById("droneCostOutput");
+
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        errorEl.textContent = "";
+
+        const battery = document.getElementById("batteryType").value;
+        const motors = document.getElementById("numMotors").value;
+        const prop = document.getElementById("propellerSize").value;
+        const frame = document.getElementById("frameSize").value;
+        const radio = document.getElementById("radioReceiver").value;
+
+        if (!battery || !motors || !prop || !frame || !radio) {
+          errorEl.textContent = "Please select a value for each variable.";
+          return;
+        }
+
+        // Show loading state
+        flightEl.innerHTML = "<em>Calculating using Random Forest ML Model...</em>";
+        costEl.innerHTML = "<em>Calculating...</em>";
+
+        try {
+          const response = await fetch('/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              batteryType: battery,
+              numMotors: motors,
+              propellerSize: prop,
+              frameSize: frame,
+              radioReceiver: radio
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("API error calculating prediction.");
+          }
+
+          const data = await response.json();
+
+          flightEl.innerHTML = `<strong>${data.flight_time_min} minutes</strong> expected flight time based on historical aerodynamic simulations.`;
+          costEl.innerHTML = `<strong>£${data.drone_cost_gbp}</strong> estimated build cost.`;
+
+        } catch (err) {
+          console.error(err);
+          errorEl.textContent = "Failed to connect to ML Backend. Is the Flask server running?";
+          flightEl.textContent = "Error";
+          costEl.textContent = "Error";
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>
